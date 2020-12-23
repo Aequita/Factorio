@@ -7,12 +7,8 @@ $testpath = "C:\Temp\Factorio\Test-Maps\"
 $outputpath = "C:\Temp\Factorio\"
 #
 # Check directories
-$dircreate = $false
 if(!(Test-Path $testpath)){
 	New-Item -ItemType Directory -Force -Path $testpath
-	$dircreate = $true
-}
-if($dircreate){
 	cls
 	write-host $testpath
 	write-host 'Directory created - populate it with save-files and restart test'
@@ -32,7 +28,7 @@ if($files.count -eq 0){
 	exit
 }
 #
-# Request input of ticks to test
+# Prompt input of ticks to test
 while ($ticks -notmatch "^\d+$"){
 	write-host
 	$ticks = Read-Host -Prompt 'Input number of ticks to test'
@@ -45,6 +41,7 @@ $export = @()
 foreach ($f in $files){
 	#
 	# Execute benchmark
+	write-host
 	write-host "Testing" $f
 	$log = & $game --benchmark $testpath$f --benchmark-ticks $ticks --disable-audio | Out-String -stream
 	#
@@ -87,18 +84,32 @@ foreach ($f in $files){
 #
 # Extra lines for readability
 write-host
-write-host
+}
+#
+# Check if csv exists + prompt input
+$bench_csv = $outputpath + 'Benchmark.csv'
+if(Test-Path $bench_csv){
+	$overwrite = $Host.UI.PromptForChoice('Benchmark.csv already exists', 'Overwrite existing file?', @('&Yes'; '&No'), 0)
+	if($overwrite -ne 0){
+		write-host
+		write-host
+		write-host '--------------------- FINISHED ---------------------'
+		write-host 'Results were >> NOT << saved'
+		write-host
+		pause
+		exit
+	}
 }
 #
 # Sort, export to .csv and remove quotes
+write-host
 write-host
 write-host '--------------------- FINISHED ---------------------'
 write-host 'Results saved to Benchmark.csv in' "$outputpath"
 write-host
 $export = $export | select-object Test,Ticks,Avg,Min,Max
-$export | export-csv -path ($outputpath + 'Benchmark.csv') -notypeinformation
-(Get-Content ($outputpath + 'Benchmark.csv')) | % {$_ -replace '"', ""} | out-file -FilePath ($outputpath + 'Benchmark.csv') -Force -Encoding ascii
-
+$export | export-csv -path $bench_csv -notypeinformation
+(Get-Content $bench_csv) | % {$_ -replace '"', ""} | out-file -FilePath $bench_csv -Force -Encoding ascii
 #
 pause
 exit
