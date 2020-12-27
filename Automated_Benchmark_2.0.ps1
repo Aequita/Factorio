@@ -227,7 +227,7 @@ while($ok -ne $true){
 }
 #
 # Sort, export to .csv and remove quotes
-$export = $export | select-object Date,Time,Version,Subfolder,Test,Ticks,Avg,Min,Max
+$export = $export | select-object Date,Time,Version,Subfolder,Test,Ticks,Avg,Min,Max,Comment
 $export | export-csv -path $bench_csv -notypeinformation -append -Delimiter ';'
 # (Get-Content $bench_csv) | % {$_ -replace '"', ""} | out-file -FilePath $bench_csv -Force -Encoding ascii
 #
